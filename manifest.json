@@ -1,0 +1,10 @@
+{
+  "name": "Imposter",
+  "short_name": "Imposter",
+  "description": "Pass-and-play imposter word game",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0c0e12",
+  "theme_color": "#1a1025",
+  "icons": []
+}

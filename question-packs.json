@@ -1,0 +1,198 @@
+[
+  {
+    "category": "Numbers & relationships",
+    "pairs": [
+      {
+        "crewQuestion": "How many exes would take you back if you asked?",
+        "imposterQuestion": "How many people have you dated for more than six months?"
+      },
+      {
+        "crewQuestion": "On a scale of 0–10, how much do you trust your closest friend?",
+        "imposterQuestion": "On a scale of 0–10, how stressed have you been this month?"
+      },
+      {
+        "crewQuestion": "How many hours of sleep did you get last night (whole hours)?",
+        "imposterQuestion": "How many cups of coffee or tea in the last 24 hours?"
+      }
+    ]
+  },
+  {
+    "category": "This or that (pick a number)",
+    "pairs": [
+      {
+        "crewQuestion": "Rate how much you enjoy spicy food from 1 (hate) to 10 (love).",
+        "imposterQuestion": "Rate how much you enjoy sweet desserts from 1 to 10."
+      },
+      {
+        "crewQuestion": "What percent chance (0–100) would you give yourself to win trivia night?",
+        "imposterQuestion": "What percent (0–100) of your week is usually on screens?"
+      }
+    ]
+  },
+  {
+    "category": "Daily life & social",
+    "pairs": [
+      {
+        "crewQuestion": "How many close friends would you say you could call at 2 a.m.?",
+        "imposterQuestion": "How many group chats are you in that you actually read?"
+      },
+      {
+        "crewQuestion": "On a scale of 1–10, how much do you enjoy small talk at parties?",
+        "imposterQuestion": "On a scale of 1–10, how often do you cancel plans last minute?"
+      },
+      {
+        "crewQuestion": "How many times a week do you cook at home (0–7)?",
+        "imposterQuestion": "How many times a week do you order delivery (0–7)?"
+      },
+      {
+        "crewQuestion": "What percent (0–100) of your socializing is online vs in person?",
+        "imposterQuestion": "What percent (0–100) of your free time is spent alone?"
+      }
+    ]
+  },
+  {
+    "category": "Love & relationships",
+    "pairs": [
+      {
+        "crewQuestion": "On a scale of 1–10, how romantic do you consider yourself?",
+        "imposterQuestion": "On a scale of 1–10, how jealous do you get in relationships?"
+      },
+      {
+        "crewQuestion": "How many serious relationships have you been in?",
+        "imposterQuestion": "How many people have you said “I love you” to romantically?"
+      },
+      {
+        "crewQuestion": "What age do you think is ideal to get married (number)?",
+        "imposterQuestion": "What age were you when you had your first kiss (number)?"
+      }
+    ]
+  },
+  {
+    "category": "Money & fame",
+    "pairs": [
+      {
+        "crewQuestion": "On a scale of 1–10, how good are you at saving money?",
+        "imposterQuestion": "On a scale of 1–10, how often do you impulse buy?"
+      },
+      {
+        "crewQuestion": "How many subscriptions (streaming, apps, etc.) do you pay for?",
+        "imposterQuestion": "How many credit or debit cards do you actively use?"
+      },
+      {
+        "crewQuestion": "What percent (0–100) of your money goes to rent or housing?",
+        "imposterQuestion": "What percent (0–100) would you give up salary for a dream job?"
+      }
+    ]
+  },
+  {
+    "category": "Future & technology",
+    "pairs": [
+      {
+        "crewQuestion": "In what year do you think humans will land on Mars (guess a year)?",
+        "imposterQuestion": "In what year did you get your first smartphone (guess a year)?"
+      },
+      {
+        "crewQuestion": "On a scale of 1–10, how excited are you about AI in daily life?",
+        "imposterQuestion": "On a scale of 1–10, how worried are you about privacy online?"
+      },
+      {
+        "crewQuestion": "How many screens do you own (phone, laptop, TV, tablet, etc.)?",
+        "imposterQuestion": "How many passwords do you think you’ve forgotten in your life (rough count)?"
+      }
+    ]
+  },
+  {
+    "category": "Christmas (questions)",
+    "pairs": [
+      {
+        "crewQuestion": "On a scale of 1–10, how much do you love Christmas music?",
+        "imposterQuestion": "On a scale of 1–10, how stressed is holiday shopping for you?"
+      },
+      {
+        "crewQuestion": "How many Christmas movies do you watch each December (roughly)?",
+        "imposterQuestion": "How many holiday parties or dinners do you attend in a typical year?"
+      },
+      {
+        "crewQuestion": "What day in December do you think is best to put up a tree (date number 1–31)?",
+        "imposterQuestion": "What temperature (°F or °C, pick one and say the number) feels like Christmas to you?"
+      }
+    ]
+  },
+  {
+    "category": "Spicy & wild",
+    "pairs": [
+      {
+        "crewQuestion": "On a scale of 1–10, how adventurous is your taste in food?",
+        "imposterQuestion": "On a scale of 1–10, how often do you say yes to last-minute plans?"
+      },
+      {
+        "crewQuestion": "How many countries have you visited?",
+        "imposterQuestion": "How many concerts or festivals have you been to?"
+      }
+    ]
+  },
+  {
+    "category": "Deep & dark",
+    "pairs": [
+      {
+        "crewQuestion": "On a scale of 1–10, how often do you overthink decisions?",
+        "imposterQuestion": "On a scale of 1–10, how much do you worry about the future?"
+      },
+      {
+        "crewQuestion": "How many hours a week do you spend reflecting alone (rough guess)?",
+        "imposterQuestion": "How many all-nighters have you pulled in the last year?"
+      }
+    ]
+  },
+  {
+    "category": "Dark humor",
+    "pairs": [
+      {
+        "crewQuestion": "On a scale of 1–10, how good are you at keeping a straight face?",
+        "imposterQuestion": "On a scale of 1–10, how awkward are family dinners for you?"
+      },
+      {
+        "crewQuestion": "How many memes do you save or share in a typical week (rough count)?",
+        "imposterQuestion": "How many times have you laughed at the wrong moment (lifetime estimate)?"
+      }
+    ]
+  },
+  {
+    "category": "Guilty pleasures",
+    "pairs": [
+      {
+        "crewQuestion": "On a scale of 1–10, how much reality TV do you secretly enjoy?",
+        "imposterQuestion": "On a scale of 1–10, how often do you replay your favorite comfort show?"
+      },
+      {
+        "crewQuestion": "How many snacks do you hide from roommates or family (types, not pieces)?",
+        "imposterQuestion": "How many hours per week do you spend on your biggest guilty pleasure?"
+      }
+    ]
+  },
+  {
+    "category": "Questions",
+    "pairs": [
+      {
+        "crewQuestion": "Pick a number 1–10 for how lucky you feel today.",
+        "imposterQuestion": "Pick a number 1–10 for your energy level right now."
+      },
+      {
+        "crewQuestion": "How many hours of sleep do you wish you got every night?",
+        "imposterQuestion": "How many alarms do you set on a work or school morning?"
+      },
+      {
+        "crewQuestion": "On a scale of 1–10, how honest are you when friends ask “be honest”?",
+        "imposterQuestion": "On a scale of 1–10, how often do you Google before answering trivia?"
+      },
+      {
+        "crewQuestion": "What percent (0–100) of your texts include an emoji?",
+        "imposterQuestion": "What percent (0–100) of your photos are screenshots?"
+      },
+      {
+        "crewQuestion": "How many tabs are open in your browser right now (roughly)?",
+        "imposterQuestion": "How many unread emails or messages are you ignoring (ballpark)?"
+      }
+    ]
+  }
+]
