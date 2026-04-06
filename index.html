@@ -4,10 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#12081c" />
+    <meta name="description" content="Pass-and-play imposter game for one device — secret word or different questions, then discussion and reveal." />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta property="og:title" content="Imposter — pass &amp; play" />
+    <meta property="og:description" content="Secret word or question imposter game. No accounts — one phone, everyone taps their name." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="icon-512.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Imposter — pass &amp; play" />
+    <meta name="twitter:description" content="Secret word or question imposter game for one device." />
+    <meta name="twitter:image" content="icon-512.png" />
     <title>Imposter</title>
     <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -34,7 +44,7 @@
               ‹
             </button>
             <h1 class="settings-header-title" id="setupTitle">Game Settings</h1>
-            <button type="button" class="icon-btn" id="setupGear" aria-label="Word and question packs">⚙</button>
+            <button type="button" class="icon-btn" id="setupGear" aria-label="Word and question library">⚙</button>
           </div>
         </header>
 
@@ -47,9 +57,9 @@
             <span class="tab-bar-icon" aria-hidden="true">▶</span>
             <span>Play</span>
           </button>
-          <button type="button" class="tab-bar-btn" data-tab="packs">
+          <button type="button" class="tab-bar-btn" data-tab="library">
             <span class="tab-bar-icon" aria-hidden="true">≡</span>
-            <span>Packs</span>
+            <span>Library</span>
           </button>
         </nav>
       </div>

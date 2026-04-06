@@ -157,38 +157,40 @@ const wordPacks = [
     ],
   },
   {
-    category: "Movie titles",
+    category: "Movies & TV",
     words: [
+      "Breaking Bad",
+      "The Office",
+      "Friends",
+      "Game of Thrones",
+      "Stranger Things",
+      "The Simpsons",
       "Titanic",
       "Avatar",
-      "Barbie",
-      "Oppenheimer",
-      "Frozen",
-      "The Lion King",
       "Star Wars",
       "Harry Potter",
       "The Godfather",
-      "Jurassic Park",
       "The Dark Knight",
       "Inception",
-      "Forrest Gump",
-      "Shrek",
-      "Toy Story",
-      "Finding Nemo",
       "Black Panther",
       "Spider-Man",
       "The Matrix",
-      "La La Land",
-      "Get Out",
-      "Top Gun",
-      "Rocky",
-      "E.T.",
-      "Jaws",
-      "Casablanca",
-      "Gladiator",
-      "Minions",
+      "Squid Game",
+      "Wednesday",
+      "The Crown",
+      "Ted Lasso",
+      "The Mandalorian",
+      "Succession",
+      "The Last of Us",
+      "Barbie",
+      "Oppenheimer",
+      "Frozen",
+      "Shrek",
+      "Toy Story",
       "The Avengers",
       "Lord of the Rings",
+      "Sherlock",
+      "Black Mirror",
     ],
   },
   {
@@ -661,66 +663,11 @@ const wordPacks = [
       "Sweden",
     ],
   },
-  {
-    category: "Cities",
-    words: [
-      "New York",
-      "Los Angeles",
-      "London",
-      "Paris",
-      "Tokyo",
-      "Dubai",
-      "Singapore",
-      "Berlin",
-      "Mumbai",
-      "Sydney",
-      "Toronto",
-      "Chicago",
-      "Seoul",
-      "Barcelona",
-      "Amsterdam",
-      "Mexico City",
-      "Cairo",
-      "Lagos",
-      "Rio de Janeiro",
-      "Vancouver",
-    ],
-  },
 ];
 
 const pair = (c, i) => ({ crewQuestion: c, imposterQuestion: i });
 
 const questionPacks = [
-  {
-    category: "Numbers & relationships",
-    pairs: [
-      pair(
-        "How many exes would take you back if you asked?",
-        "How many people have you dated for more than six months?"
-      ),
-      pair(
-        "On a scale of 0–10, how much do you trust your closest friend?",
-        "On a scale of 0–10, how stressed have you been this month?"
-      ),
-      pair(
-        "How many hours of sleep did you get last night (whole hours)?",
-        "How many cups of coffee or tea in the last 24 hours?"
-      ),
-    ],
-  },
-  {
-    category: "This or that (pick a number)",
-    pairs: [
-      pair(
-        "Rate how much you enjoy spicy food from 1 (hate) to 10 (love).",
-        "Rate how much you enjoy sweet desserts from 1 to 10."
-      ),
-      pair(
-        "What percent chance (0–100) would you give yourself to win trivia night?",
-        "What percent (0–100) of your week is usually on screens?"
-      ),
-    ],
-  },
   {
     category: "Daily life & social",
     pairs: [
@@ -807,6 +754,35 @@ const questionPacks = [
       pair(
         "What day in December do you think is best to put up a tree (date number 1–31)?",
         "What temperature (°F or °C, pick one and say the number) feels like Christmas to you?"
+      ),
+    ],
+  },
+  {
+    category: "Movies & TV",
+    pairs: [
+      pair(
+        "On a scale of 1–10, how often do you rewatch movies you already love?",
+        "On a scale of 1–10, how often do you binge a new series from episode one to the end?"
+      ),
+      pair(
+        "How many movies have you seen in a theater in the last 12 months (rough count)?",
+        "How many different streaming services do you pay for or use regularly?"
+      ),
+      pair(
+        "What percent (0–100) of your watch time is movies vs TV shows?",
+        "What percent (0–100) of series you start do you usually finish all the way?"
+      ),
+      pair(
+        "On a scale of 1–10, how angry do spoilers make you?",
+        "On a scale of 1–10, how often do you watch through the end credits?"
+      ),
+      pair(
+        "How many hours was your longest single binge session (one sitting, rough guess)?",
+        "How many times have you cried or teared up at a movie or finale (lifetime ballpark)?"
+      ),
+      pair(
+        "How many film franchises have you seen at least three entries of (Marvel, Fast & Furious, etc.)?",
+        "How many comfort shows could you rewatch from season one right now without getting bored?"
       ),
     ],
   },

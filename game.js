@@ -46,7 +46,17 @@
   let questionPackOverrides = {};
   let bootstrapping = true;
 
-  /** @type {{ setupView: 'main'|'categories'|'players', gameMode: 'word'|'question', players: string[], imposterCount: number, wordPoolIndices: number[], questionPoolIndices: number[], showCategoryToImposter: boolean, impostersKnowEachOther: boolean, word: string, category: string, crewQuestion: string, imposterQuestion: string, answers: Record<number, string>, imposters: Set<number>, phase: string, revealIndex: number, starterIndex: number }} */
+  /** @type {((e: KeyboardEvent) => void) | null} */
+  let revealFaceDownEscHandler = null;
+
+  function clearRevealFaceDownEsc() {
+    if (revealFaceDownEscHandler) {
+      document.removeEventListener("keydown", revealFaceDownEscHandler);
+      revealFaceDownEscHandler = null;
+    }
+  }
+
+  /** @type {{ setupView: 'main'|'categories'|'players', gameMode: 'word'|'question', players: string[], imposterCount: number, wordPoolIndices: number[], questionPoolIndices: number[], showCategoryToImposter: boolean, impostersKnowEachOther: boolean, word: string, category: string, crewQuestion: string, imposterQuestion: string, answers: Record<number, string>, imposters: Set<number>, phase: string, revealSeen: Set<number>, revealViewingIndex: number | null, revealFaceDown: boolean, starterIndex: number }} */
   let state = {
     setupView: "main",
     gameMode: "word",
@@ -63,7 +73,9 @@
     answers: {},
     imposters: new Set(),
     phase: "setup",
-    revealIndex: 0,
+    revealSeen: new Set(),
+    revealViewingIndex: null,
+    revealFaceDown: true,
     starterIndex: 0,
   };
 
@@ -518,19 +530,43 @@
       .join(", ")}</strong></p>`;
   }
 
+  /** Category shown above the face-down card; mirrors post-flip visibility rules. */
+  function categoryPreviewAboveCard(i) {
+    const isImposter = state.imposters.has(i);
+    const cat = escapeHtml(state.category);
+
+    if (state.gameMode === "word") {
+      if (!isImposter || state.showCategoryToImposter) {
+        return `<div class="reveal-category-band">
+          <p class="reveal-category-band__label">Category</p>
+          <span class="category-pill">${cat}</span>
+        </div>`;
+      }
+      return `<p class="hint reveal-category-band reveal-category-band--muted">Category is hidden for you this round — flip the card to see your role.</p>`;
+    }
+
+    if (!isImposter || state.showCategoryToImposter) {
+      return `<div class="reveal-category-band">
+        <p class="reveal-category-band__label">${!isImposter ? "This round’s theme" : "Category"}</p>
+        <span class="category-pill">${cat}</span>
+      </div>`;
+    }
+    return `<p class="hint reveal-category-band reveal-category-band--muted">Category is hidden for you — flip the card for your question.</p>`;
+  }
+
   function updateChrome() {
     const inGame = state.phase !== "setup";
     if (tabBar) tabBar.hidden = inGame || bootstrapping;
     if (appScroll) appScroll.classList.toggle("app-scroll--no-tab", inGame || bootstrapping);
     if (main) main.classList.toggle("game-active", inGame);
 
-    const showPlayHeader = inGame || bootstrapping || uiTab === "packs";
+    const showPlayHeader = inGame || bootstrapping || uiTab === "library";
     if (headerPlayMode) headerPlayMode.classList.toggle("hidden", !showPlayHeader);
     if (headerSetupMode) headerSetupMode.classList.toggle("hidden", showPlayHeader);
 
     if (headerSubtitle) {
       if (inGame) headerSubtitle.textContent = "Round in progress";
-      else if (uiTab === "packs") headerSubtitle.textContent = "Packs";
+      else if (uiTab === "library") headerSubtitle.textContent = "Library";
       else headerSubtitle.textContent = "Pass & play";
     }
 
@@ -575,7 +611,7 @@
     });
     setupGear?.addEventListener("click", () => {
       if (state.phase !== "setup" || bootstrapping) return;
-      uiTab = "packs";
+      uiTab = "library";
       render();
     });
   }
@@ -587,12 +623,14 @@
     const entries =
       state.gameMode === "word" ? buildWordPoolEntries() : buildQuestionPoolEntries();
     if (entries.length === 0) {
-      alert("Turn on at least one category that has content for this game mode, or add items under Packs.");
+      alert("Turn on at least one category that has content for this game mode, or add items in the Library tab.");
       return;
     }
 
     state.imposters = assignImposters(n, state.imposterCount);
-    state.revealIndex = 0;
+    state.revealSeen = new Set();
+    state.revealViewingIndex = null;
+    state.revealFaceDown = true;
     state.answers = {};
 
     if (state.gameMode === "word") {
@@ -617,6 +655,143 @@
     const d = document.createElement("div");
     d.textContent = s;
     return d.innerHTML;
+  }
+
+  function resetRoundToMenu() {
+    if (!confirm("Quit this round and go back to the menu? This round’s progress will be lost.")) return;
+    clearRevealFaceDownEsc();
+    state.phase = "setup";
+    state.setupView = "main";
+    state.word = "";
+    state.crewQuestion = "";
+    state.imposterQuestion = "";
+    state.answers = {};
+    state.imposters = new Set();
+    state.revealSeen = new Set();
+    state.revealViewingIndex = null;
+    state.revealFaceDown = true;
+    render();
+  }
+
+  function wireQuitRoundButton() {
+    document.getElementById("quitRoundBtn")?.addEventListener("click", () => resetRoundToMenu());
+  }
+
+  function libraryBackupCardHtml() {
+    return `<div class="card card--calm library-backup-card">
+      <p class="sheet-label">Backup &amp; restore</p>
+      <p class="hint hint--spaced">Save or load your <strong>custom</strong> categories and on-device edits to built-in lists (one JSON file).</p>
+      <div class="row library-backup-row">
+        <button type="button" class="btn btn-secondary" id="exportLibraryBtn">Export library</button>
+        <label class="btn btn-secondary library-backup-import-label">
+          Import…
+          <input type="file" id="importLibraryInput" accept="application/json,.json" hidden />
+        </label>
+      </div>
+    </div>`;
+  }
+
+  function exportLibraryJson() {
+    const data = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      customWordCategories,
+      customQuestionCategories,
+      wordPackOverrides,
+      questionPackOverrides,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = "imposter-library.json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
+  function applyImportedLibrary(jsonText) {
+    const data = JSON.parse(jsonText);
+    if (!data || typeof data !== "object") throw new Error("Invalid file.");
+
+    if (Array.isArray(data.customWordCategories)) {
+      customWordCategories = data.customWordCategories.map(sanitizeWordCategory).filter(Boolean);
+    }
+    if (Array.isArray(data.customQuestionCategories)) {
+      customQuestionCategories = data.customQuestionCategories.map(sanitizeQuestionCategory).filter(Boolean);
+    }
+
+    if (data.wordPackOverrides && typeof data.wordPackOverrides === "object" && !Array.isArray(data.wordPackOverrides)) {
+      const next = {};
+      for (const [k, v] of Object.entries(data.wordPackOverrides)) {
+        const cat = String(k).trim();
+        if (!cat || !v || !Array.isArray(v.words)) continue;
+        next[cat] = { words: normalizeWordWords(v.words) };
+      }
+      wordPackOverrides = next;
+    }
+
+    if (data.questionPackOverrides && typeof data.questionPackOverrides === "object" && !Array.isArray(data.questionPackOverrides)) {
+      const next = {};
+      for (const [k, v] of Object.entries(data.questionPackOverrides)) {
+        const cat = String(k).trim();
+        if (!cat || !v || !Array.isArray(v.pairs)) continue;
+        next[cat] = { pairs: normalizeQuestionPairsInline(v.pairs) };
+      }
+      questionPackOverrides = next;
+    }
+
+    try {
+      localStorage.setItem(LS_CUSTOM_WORD, JSON.stringify(customWordCategories));
+      localStorage.setItem(LS_CUSTOM_QUESTION, JSON.stringify(customQuestionCategories));
+      localStorage.setItem(LS_WORD_OVERRIDES, JSON.stringify(wordPackOverrides));
+      localStorage.setItem(LS_QUESTION_OVERRIDES, JSON.stringify(questionPackOverrides));
+    } catch {
+      throw new Error("Could not save to this device’s storage.");
+    }
+
+    rebuildWordPacks();
+    rebuildQuestionPacks();
+    clampPoolsToLengths();
+    saveSetupPrefs();
+    packsWordEditTarget = null;
+    packsQuestionEditTarget = null;
+  }
+
+  function wireLibraryBackup() {
+    document.getElementById("exportLibraryBtn")?.addEventListener("click", () => {
+      try {
+        exportLibraryJson();
+      } catch (e) {
+        alert(String(e?.message || e));
+      }
+    });
+    const inp = document.getElementById("importLibraryInput");
+    if (inp) {
+      inp.addEventListener("change", () => {
+        const file = inp.files && inp.files[0];
+        inp.value = "";
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            if (
+              !confirm(
+                "Replace this device’s custom categories and built-in list overrides with the file? This cannot be undone."
+              )
+            ) {
+              return;
+            }
+            applyImportedLibrary(String(reader.result));
+            render();
+            alert("Library imported.");
+          } catch (err) {
+            alert(err?.message || "Import failed.");
+          }
+        };
+        reader.onerror = () => alert("Could not read file.");
+        reader.readAsText(file, "utf-8");
+      });
+    }
   }
 
   function renderSetupMain() {
@@ -921,7 +1096,7 @@
 
   function packsEditorSegmented(segWord, segQ) {
     return `
-        <div class="segmented" role="group" aria-label="Pack type">
+        <div class="segmented" role="group" aria-label="Library section">
           <button type="button" class="${segWord}" data-pack-kind="word">Words</button>
           <button type="button" class="${segQ}" data-pack-kind="question">Questions</button>
         </div>`;
@@ -965,10 +1140,11 @@
       .join("");
 
     main.innerHTML = `
+      ${libraryBackupCardHtml()}
       <div class="card card--calm">
-        <p class="sheet-label">Packs</p>
+        <p class="sheet-label">Library</p>
         ${packsEditorSegmented(segWord, segQ)}
-        <p class="hint hint--spaced">Edit any category’s words. Built-in lists are saved on this device only (use <strong>Reset to default</strong> inside a default pack to undo). <strong>word-packs.json</strong> still loads as the starting point.</p>
+        <p class="hint hint--spaced">Edit words by category. Built-in lists are saved on this device only (use <strong>Reset to default</strong> on a built-in category to undo). <strong>word-packs.json</strong> is still the starting point.</p>
         <label for="newWordCatName">New category name</label>
         <div class="row" style="margin-top:6px">
           <input type="text" id="newWordCatName" placeholder="e.g. Office" maxlength="48" autocomplete="off" />
@@ -992,6 +1168,7 @@
     `;
 
     wirePackKindSwitch();
+    wireLibraryBackup();
 
     document.getElementById("addWordCatBtn").addEventListener("click", () => {
       const name = document.getElementById("newWordCatName").value.trim();
@@ -1229,10 +1406,11 @@
       .join("");
 
     main.innerHTML = `
+      ${libraryBackupCardHtml()}
       <div class="card card--calm">
-        <p class="sheet-label">Packs</p>
+        <p class="sheet-label">Library</p>
         ${packsEditorSegmented(segWord, segQ)}
-        <p class="hint hint--spaced">Edit any category’s question pairs. Built-in lists are saved on this device only. <strong>question-packs.json</strong> is still the starting point.</p>
+        <p class="hint hint--spaced">Edit question pairs by category. Built-in lists are saved on this device only. <strong>question-packs.json</strong> is still the starting point.</p>
         <label for="newQCatName">New category name</label>
         <div class="row" style="margin-top:6px">
           <input type="text" id="newQCatName" placeholder="e.g. Hot takes" maxlength="48" autocomplete="off" />
@@ -1256,6 +1434,7 @@
     `;
 
     wirePackKindSwitch();
+    wireLibraryBackup();
 
     document.getElementById("addQCatBtn").addEventListener("click", () => {
       const name = document.getElementById("newQCatName").value.trim();
@@ -1475,28 +1654,120 @@
   }
 
   function renderRevealPass() {
-    const i = state.revealIndex;
-    const name = state.players[i];
+    if (state.revealViewingIndex !== null) {
+      renderRevealModal(state.revealViewingIndex);
+      return;
+    }
+    renderRevealLobby();
+  }
+
+  function renderRevealLobby() {
+    const n = state.players.length;
+    if (state.revealSeen.size >= n) {
+      state.phase = "reveal_ready";
+      state.revealViewingIndex = null;
+      state.revealFaceDown = true;
+      render();
+      return;
+    }
+
+    const tiles = state.players
+      .map((name, i) => {
+        const done = state.revealSeen.has(i);
+        return `
+      <button type="button" class="stat-card reveal-name-card${done ? " is-done" : ""}" data-open-player="${i}" ${
+          done ? "disabled" : ""
+        }>
+        <div class="stat-card__icon" aria-hidden="true">${done ? "✓" : "👤"}</div>
+        <p class="stat-card__label">${done ? "Done" : "Open your card"}</p>
+        <p class="stat-card__value reveal-name-card__name">${escapeHtml(name)}</p>
+      </button>`;
+      })
+      .join("");
+
     main.innerHTML = `
-      <div class="card reveal-screen">
-        <p class="who">Pass the device to</p>
-        <p class="name">${escapeHtml(name)}</p>
-        <p class="hint">Only they should see the next screen.</p>
-      </div>
-      <div class="screen-actions">
-        <button type="button" class="btn btn-primary btn-block" id="showSecret">Show my turn</button>
+      <div class="settings-page reveal-lobby-page">
+        <div class="card reveal-screen">
+          <p class="who">Pick your name</p>
+          <p class="hint" style="margin-top:4px">Tap <strong>only your own</strong> tile, then tap the card to reveal. Opening someone else’s card is cheating — the honor system keeps the game fair.</p>
+        </div>
+        <div class="stat-grid reveal-player-grid">${tiles}</div>
+        <p class="hint quit-round-hint" style="text-align:center;margin-top:18px">
+          <button type="button" class="btn btn-ghost btn-sm" id="quitRoundBtn">Quit to menu</button>
+        </p>
       </div>
     `;
-    document.getElementById("showSecret").addEventListener("click", () => {
-      state.phase = "reveal_show";
-      render();
+
+    wireQuitRoundButton();
+
+    main.querySelectorAll("[data-open-player]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const i = Number(btn.getAttribute("data-open-player"));
+        if (state.revealSeen.has(i)) return;
+        state.revealViewingIndex = i;
+        state.revealFaceDown = true;
+        render();
+      });
     });
   }
 
-  function renderRevealShow() {
-    const i = state.revealIndex;
+  function finishRevealForPlayer(i) {
+    state.revealSeen.add(i);
+    state.revealViewingIndex = null;
+    state.revealFaceDown = true;
+    render();
+  }
+
+  function renderRevealModal(i) {
     const name = state.players[i];
     const isImposter = state.imposters.has(i);
+
+    if (!state.revealFaceDown) clearRevealFaceDownEsc();
+
+    const backRow = state.revealFaceDown
+      ? `<p class="hint reveal-modal__back-wrap"><button type="button" class="btn btn-ghost btn-sm" id="revealModalBack">← Back to names</button></p>`
+      : "";
+
+    if (state.revealFaceDown) {
+      main.innerHTML = `
+      <div class="reveal-modal-root">
+        <div class="reveal-modal-panel card reveal-screen">
+          ${backRow}
+          <p class="who" style="margin-bottom:10px">${escapeHtml(name)}</p>
+          ${categoryPreviewAboveCard(i)}
+          <button type="button" class="secret-card-flip" id="flipSecretCard" aria-label="Tap to reveal your card">
+            <span class="secret-card-flip__mark" aria-hidden="true">?</span>
+            <span class="secret-card-flip__hint">Tap the card for your role &amp; secret</span>
+          </button>
+          <p class="hint reveal-modal__esc-hint" style="margin-top:14px"><kbd class="kbd-hint">Esc</kbd> or <strong>Back to names</strong> above if this isn’t you.</p>
+        </div>
+        <p class="hint quit-round-hint" style="text-align:center">
+          <button type="button" class="btn btn-ghost btn-sm" id="quitRoundBtn">Quit to menu</button>
+        </p>
+      </div>`;
+      document.getElementById("flipSecretCard").addEventListener("click", () => {
+        clearRevealFaceDownEsc();
+        state.revealFaceDown = false;
+        render();
+      });
+      document.getElementById("revealModalBack").addEventListener("click", () => {
+        clearRevealFaceDownEsc();
+        state.revealViewingIndex = null;
+        state.revealFaceDown = true;
+        render();
+      });
+      wireQuitRoundButton();
+      clearRevealFaceDownEsc();
+      revealFaceDownEscHandler = (e) => {
+        if (e.key !== "Escape") return;
+        clearRevealFaceDownEsc();
+        state.revealViewingIndex = null;
+        state.revealFaceDown = true;
+        render();
+      };
+      document.addEventListener("keydown", revealFaceDownEscHandler);
+      return;
+    }
 
     if (state.gameMode === "word") {
       const fellows =
@@ -1521,15 +1792,18 @@
       }
 
       main.innerHTML = `
-      <div class="card reveal-screen">
-        <p class="who">${escapeHtml(name)}</p>
-        ${imposterBlock}
-      </div>
-      <div class="screen-actions">
-        <button type="button" class="btn btn-primary btn-block" id="doneReveal">Next player</button>
-      </div>
-    `;
-      document.getElementById("doneReveal").addEventListener("click", () => advanceRevealWord());
+      <div class="reveal-modal-root">
+        <div class="reveal-modal-panel card reveal-screen">
+          <p class="who">${escapeHtml(name)}</p>
+          ${imposterBlock}
+        </div>
+        <div class="screen-actions reveal-modal-actions">
+          <button type="button" class="btn btn-primary btn-block" id="doneReveal">Done — back to names</button>
+          <button type="button" class="btn btn-ghost btn-block" id="quitRoundBtn" style="margin-top:10px">Quit to menu</button>
+        </div>
+      </div>`;
+      document.getElementById("doneReveal").addEventListener("click", () => finishRevealForPlayer(i));
+      wireQuitRoundButton();
       return;
     }
 
@@ -1553,25 +1827,27 @@
       : "";
 
     main.innerHTML = `
-      <div class="card reveal-screen" style="text-align:left">
-        <p class="who" style="text-align:center">${escapeHtml(name)}</p>
-        ${badge}
-        <div class="question-block">
-          <p class="q-label">${qLabel}</p>
-          <p class="q-text">${escapeHtml(qText)}</p>
+      <div class="reveal-modal-root">
+        <div class="reveal-modal-panel card reveal-screen" style="text-align:left">
+          <p class="who" style="text-align:center">${escapeHtml(name)}</p>
+          ${badge}
+          <div class="question-block">
+            <p class="q-label">${qLabel}</p>
+            <p class="q-text">${escapeHtml(qText)}</p>
+          </div>
+          ${catQ}
+          ${fellowsQ}
+          <div class="answer-input-wrap">
+            <label for="playerAnswer">Your answer</label>
+            <input type="text" id="playerAnswer" placeholder="Type your answer" maxlength="120" autocomplete="off" />
+          </div>
+          <p class="hint" style="margin-top:12px">Keep this private until everyone has locked an answer—the crew question will be shown to the group when discussion starts.</p>
         </div>
-        ${catQ}
-        ${fellowsQ}
-        <div class="answer-input-wrap">
-          <label for="playerAnswer">Your answer</label>
-          <input type="text" id="playerAnswer" placeholder="Type your answer" maxlength="120" autocomplete="off" />
+        <div class="screen-actions reveal-modal-actions">
+          <button type="button" class="btn btn-primary btn-block" id="doneReveal">Lock answer — back to names</button>
+          <button type="button" class="btn btn-ghost btn-block" id="quitRoundBtn" style="margin-top:10px">Quit to menu</button>
         </div>
-        <p class="hint" style="margin-top:12px">Keep this private until everyone has locked an answer—the crew question will be shown to the group when discussion starts.</p>
-      </div>
-      <div class="screen-actions">
-        <button type="button" class="btn btn-primary btn-block" id="doneReveal">Lock answer — next player</button>
-      </div>
-    `;
+      </div>`;
 
     const input = document.getElementById("playerAnswer");
     input.focus();
@@ -1583,30 +1859,28 @@
         return;
       }
       state.answers[i] = ans.slice(0, 120);
-      advanceRevealQuestion();
+      finishRevealForPlayer(i);
     });
+    wireQuitRoundButton();
   }
 
-  function advanceRevealWord() {
-    if (state.revealIndex < state.players.length - 1) {
-      state.revealIndex += 1;
-      state.phase = "reveal_pass";
-    } else {
+  function renderRevealReady() {
+    main.innerHTML = `
+      <div class="card reveal-screen">
+        <p class="who">Everyone ready?</p>
+        <p class="name" style="font-size:1.2rem;font-weight:700">Start discussion</p>
+        <p class="hint">Continue when every player has opened <strong>their own</strong> card and finished (Done / lock answer).</p>
+      </div>
+      <div class="screen-actions">
+        <button type="button" class="btn btn-primary btn-block" id="startDiscussBtn">Start discussion</button>
+        <button type="button" class="btn btn-ghost btn-block" id="quitRoundBtn" style="margin-top:10px">Quit to menu</button>
+      </div>`;
+    document.getElementById("startDiscussBtn").addEventListener("click", () => {
       state.starterIndex = pickStarter();
       state.phase = "discuss";
-    }
-    render();
-  }
-
-  function advanceRevealQuestion() {
-    if (state.revealIndex < state.players.length - 1) {
-      state.revealIndex += 1;
-      state.phase = "reveal_pass";
-    } else {
-      state.starterIndex = pickStarter();
-      state.phase = "discuss";
-    }
-    render();
+      render();
+    });
+    wireQuitRoundButton();
   }
 
   function renderDiscuss() {
@@ -1638,6 +1912,7 @@
       </div>
       <div class="screen-actions">
         <button type="button" class="btn btn-primary btn-block" id="endRound">End discussion — reveal</button>
+        <button type="button" class="btn btn-ghost btn-block" id="quitRoundBtn" style="margin-top:10px">Quit to menu</button>
       </div>
     `;
 
@@ -1650,6 +1925,7 @@
       state.phase = "reveal_gate";
       render();
     });
+    wireQuitRoundButton();
   }
 
   function renderRevealGate() {
@@ -1666,12 +1942,14 @@
       </div>
       <div class="screen-actions">
         <button type="button" class="btn btn-primary btn-block" id="doReveal">${isWord ? "Show word & imposters" : "Show full reveal"}</button>
+        <button type="button" class="btn btn-ghost btn-block" id="quitRoundBtn" style="margin-top:10px">Quit to menu</button>
       </div>
     `;
     document.getElementById("doReveal").addEventListener("click", () => {
       state.phase = "reveal_answer";
       render();
     });
+    wireQuitRoundButton();
   }
 
   function renderRevealAnswer() {
@@ -1696,6 +1974,7 @@
       </div>
       <div class="screen-actions">
         <button type="button" class="btn btn-primary btn-block" id="again">New round</button>
+        <button type="button" class="btn btn-ghost btn-block" id="quitRoundBtn" style="margin-top:10px">Quit to menu</button>
       </div>
     `;
     } else {
@@ -1731,6 +2010,7 @@
       </div>
       <div class="screen-actions">
         <button type="button" class="btn btn-primary btn-block" id="again">New round</button>
+        <button type="button" class="btn btn-ghost btn-block" id="quitRoundBtn" style="margin-top:10px">Quit to menu</button>
       </div>
     `;
     }
@@ -1743,19 +2023,23 @@
       state.imposterQuestion = "";
       state.answers = {};
       state.imposters = new Set();
+      state.revealSeen = new Set();
+      state.revealViewingIndex = null;
+      state.revealFaceDown = true;
       render();
     });
+    wireQuitRoundButton();
   }
 
   function renderLoading() {
     updateChrome();
-    main.innerHTML = `<div class="loading-banner">Loading packs…</div>`;
+    main.innerHTML = `<div class="loading-banner">Loading library…</div>`;
   }
 
   function render() {
     updateChrome();
     if (state.phase === "setup") {
-      if (uiTab === "packs") renderPacksEditor();
+      if (uiTab === "library") renderPacksEditor();
       else if (state.setupView === "categories") renderSetupCategories();
       else if (state.setupView === "players") renderSetupPlayers();
       else renderSetupMain();
@@ -1766,8 +2050,8 @@
       case "reveal_pass":
         renderRevealPass();
         break;
-      case "reveal_show":
-        renderRevealShow();
+      case "reveal_ready":
+        renderRevealReady();
         break;
       case "discuss":
         renderDiscuss();

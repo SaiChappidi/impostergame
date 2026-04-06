@@ -1,35 +1,5 @@
 [
   {
-    "category": "Numbers & relationships",
-    "pairs": [
-      {
-        "crewQuestion": "How many exes would take you back if you asked?",
-        "imposterQuestion": "How many people have you dated for more than six months?"
-      },
-      {
-        "crewQuestion": "On a scale of 0–10, how much do you trust your closest friend?",
-        "imposterQuestion": "On a scale of 0–10, how stressed have you been this month?"
-      },
-      {
-        "crewQuestion": "How many hours of sleep did you get last night (whole hours)?",
-        "imposterQuestion": "How many cups of coffee or tea in the last 24 hours?"
-      }
-    ]
-  },
-  {
-    "category": "This or that (pick a number)",
-    "pairs": [
-      {
-        "crewQuestion": "Rate how much you enjoy spicy food from 1 (hate) to 10 (love).",
-        "imposterQuestion": "Rate how much you enjoy sweet desserts from 1 to 10."
-      },
-      {
-        "crewQuestion": "What percent chance (0–100) would you give yourself to win trivia night?",
-        "imposterQuestion": "What percent (0–100) of your week is usually on screens?"
-      }
-    ]
-  },
-  {
     "category": "Daily life & social",
     "pairs": [
       {
@@ -115,6 +85,35 @@
       {
         "crewQuestion": "What day in December do you think is best to put up a tree (date number 1–31)?",
         "imposterQuestion": "What temperature (°F or °C, pick one and say the number) feels like Christmas to you?"
+      }
+    ]
+  },
+  {
+    "category": "Movies & TV",
+    "pairs": [
+      {
+        "crewQuestion": "On a scale of 1–10, how often do you rewatch movies you already love?",
+        "imposterQuestion": "On a scale of 1–10, how often do you binge a new series from episode one to the end?"
+      },
+      {
+        "crewQuestion": "How many movies have you seen in a theater in the last 12 months (rough count)?",
+        "imposterQuestion": "How many different streaming services do you pay for or use regularly?"
+      },
+      {
+        "crewQuestion": "What percent (0–100) of your watch time is movies vs TV shows?",
+        "imposterQuestion": "What percent (0–100) of series you start do you usually finish all the way?"
+      },
+      {
+        "crewQuestion": "On a scale of 1–10, how angry do spoilers make you?",
+        "imposterQuestion": "On a scale of 1–10, how often do you watch through the end credits?"
+      },
+      {
+        "crewQuestion": "How many hours was your longest single binge session (one sitting, rough guess)?",
+        "imposterQuestion": "How many times have you cried or teared up at a movie or finale (lifetime ballpark)?"
+      },
+      {
+        "crewQuestion": "How many film franchises have you seen at least three entries of (Marvel, Fast & Furious, etc.)?",
+        "imposterQuestion": "How many comfort shows could you rewatch from season one right now without getting bored?"
       }
     ]
   },
